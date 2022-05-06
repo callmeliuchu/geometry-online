@@ -36,7 +36,7 @@ const utils = {
         }
       }
       let {x: pX, y: pY} = point;
-      let ans = {x:pX,y:pY,width:6,height:6,selected:true,hover:false};
+      let ans = {x:pX,y:pY,width:20,height:20,selected:true,hover:false};
       rects.push(ans);
       return ans;
     },
@@ -78,7 +78,9 @@ const utils = {
             A.push(row);
             b.push(y);
         }
-        this.parameters = math.multiply(math.inv(A),b);
+        if(math.det(A) != 0){
+           this.parameters = math.multiply(math.inv(A),b);
+        }
     }
 
     calc(x){
@@ -116,7 +118,9 @@ const utils = {
             b.push(y);
         }
         console.log(this.g);
-        this.parameters = math.multiply(math.inv(A),b);
+        if(math.det(A) != 0){
+         this.parameters = math.multiply(math.inv(A),b);
+        }
     }
 
     calc(x){
@@ -160,8 +164,6 @@ function run(){
 }
 
   
-
-
 
   canvasEle.addEventListener('mousedown', event => {
     let point = utils.getMousePositionInCanvas(event, canvasEle);
