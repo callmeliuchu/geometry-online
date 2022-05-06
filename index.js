@@ -41,12 +41,6 @@ const utils = {
       return ans;
     },
 
-    getSelect(){
-
-    },
-
-
-
     hoverRect(point){
       for(let key in rects){
         if(this.isPointInRect(rects[key],point)){
@@ -133,6 +127,48 @@ const utils = {
   }
   
 
+  class Calc3{
+    // 最小二乘
+    constructor(points,n,lambda){
+      this.points = points;
+      this.parameters = [];
+      this.n = n;
+      this.lambda = lambda;
+      this.calcParameters();
+    } 
+    calcParameters(){
+        let A = []
+        let b = []
+        for(let point of this.points){
+            let x = point[0];
+            let y = point[1];
+            let row = [];
+            for(let i=0;i<=this.n;i++){
+                row.push(math.pow(x,i));
+            }
+            A.push(row);
+            b.push(y);
+        }
+        let AT = math.transpose(A);
+        let bb = math.multiply(AT,b);
+        let AA = math.multiply(AT,A);
+        for(let i=0;i<AA.length;i++){
+          AA[i][i] += this.lambda;
+        } 
+        if(math.det(AA) != 0){
+          this.parameters = math.multiply(math.inv(AA),bb);
+        }
+
+    }
+
+    calc(x){
+      let ans = 0;
+      for(let i=0;i<this.parameters.length;i++){
+          ans += math.pow(x,i)*this.parameters[i];
+      }
+      return ans;
+    }
+  }
 
   function drawCurve(arr,color){
     ctx.beginPath();
@@ -146,17 +182,29 @@ const utils = {
 }
 
 
-let Calcs = [Calc1];
+let Calcs = [[Calc1]];
 
 
 function run(){
     let index = 1;
-    for(Calc of Calcs){
+    for(let calc_arr of Calcs){
+      Calc = calc_arr[0];
+      let para1 = null;
+      let para2 = null;
+      if(calc_arr.length > 1){
+        para1 = calc_arr[1];
+        para2 = calc_arr[2];
+      }
       let values = []
       for(let i=0;i<rects.length;i++){
           values.push([rects[i]['x'],rects[i]['y']]);
       }
-      let cal = new Calc(values);
+      let cal = null;
+      if(para1 != null){
+        cal = new Calc(values,para1,para2);
+      }else{
+        cal = new Calc(values);
+      }
       let arr = [];
       for(let x=0;x<width;x++){
           let y = cal.calc(x);
