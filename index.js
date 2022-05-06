@@ -117,7 +117,6 @@ const utils = {
             A.push(row);
             b.push(y);
         }
-        console.log(this.g);
         if(math.det(A) != 0){
          this.parameters = math.multiply(math.inv(A),b);
         }
@@ -135,8 +134,9 @@ const utils = {
   
 
 
-  function drawCurve(arr){
+  function drawCurve(arr,color){
     ctx.beginPath();
+    ctx.strokeStyle  = "rgba("+color+",0,0,1)";
     ctx.moveTo(arr[0][0],arr[0][1]);
     for(let i=1;i<arr.length;i++){
         ctx.lineTo(arr[i][0],arr[i][1]);
@@ -146,21 +146,25 @@ const utils = {
 }
 
 
-let Calc = Calc1;
+let Calcs = [Calc1];
 
 
 function run(){
-    let values = []
-    for(let i=0;i<rects.length;i++){
-        values.push([rects[i]['x'],rects[i]['y']]);
+    let index = 1;
+    for(Calc of Calcs){
+      let values = []
+      for(let i=0;i<rects.length;i++){
+          values.push([rects[i]['x'],rects[i]['y']]);
+      }
+      let cal = new Calc(values);
+      let arr = [];
+      for(let x=0;x<width;x++){
+          let y = cal.calc(x);
+          arr.push([x,y]);
+      }
+      drawCurve(arr,parseInt(math.random()*255));
+      index += 1;
     }
-    let cal = new Calc(values);
-    let arr = [];
-    for(let x=0;x<width;x++){
-        let y = cal.calc(x);
-        arr.push([x,y]);
-    }
-    drawCurve(arr);
 }
 
   

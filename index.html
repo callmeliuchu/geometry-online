@@ -2,16 +2,20 @@
     <canvas id="myCanvas" style="border:1px solid #000000;" width="400" height="400"></canvas>
     <button onclick="change(1)">多项式</button>
     <button onclick="change(2)">高斯基函数</button>
+    <button onclick="change(3)">同时</button>
     <script src="math.js"></script>
     <script src="index.js"></script>
     <script src="chapter1.js"></script>
     <script>
         function change(val){
             if(val == 1){
-                Calc = Calc1;
+                Calcs = [Calc1];
             }
             if(val == 2){
-                Calc = Calc2;
+                Calcs = [Calc2];
+            }
+            if(val == 3){
+                Calcs = [Calc1,Calc2];
             }
         }
     </script>
