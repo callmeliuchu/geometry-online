@@ -5,6 +5,8 @@ let width = canvasEle.width;
 let height = canvasEle.height;
 
 
+
+
 const utils = {
 
     getMousePositionInCanvas: (event, canvasEle) => {
@@ -36,7 +38,7 @@ const utils = {
         }
       }
       let {x: pX, y: pY} = point;
-      let ans = {x:pX,y:pY,width:20,height:20,selected:true,hover:false};
+      let ans = {x:pX,y:pY,width:10,height:10,selected:true,hover:false};
       rects.push(ans);
       return ans;
     },
@@ -170,6 +172,106 @@ const utils = {
     }
   }
 
+
+data = {
+
+}
+
+  class Calc4{
+    // RBF
+
+    constructor(points){
+      this.points = points;
+      let key = this.points.toString();
+      this.para_n = 4;
+      this.iter_num = 1000;
+      this.learning_rate = 0.001;
+      if(key in data){
+        this.c_arr = data[key][0];
+        this.w_arr = data[key][1];
+        this.beta_arr = data[key][2];
+      }else{
+        this.c_arr = [];
+        this.w_arr = [];
+        this.beta_arr = [];
+        this.calcParameters();
+        data[key] = [this.c_arr,this.w_arr,this.beta_arr]
+      }
+
+    } 
+
+    w_gradient(j){
+      let ans = 0;
+      for(let i=0;i<this.points.length;i++){
+        let x = this.points[i][0];
+        let y = this.points[i][1];
+        let loss = this.calc(x) - y;
+        ans += loss*this.G(x,j);
+      }
+      return ans;
+    }
+
+    G(x,j){
+      return math.exp(-(x-this.c_arr[j])*(x-this.c_arr[j])/this.beta_arr[j]/this.beta_arr[j]);
+    }
+
+    c_gradient(j){
+      let ans = 0;
+      for(let i=0;i<this.points.length;i++){
+        let x = this.points[i][0];
+        let y = this.points[i][1];
+        let loss = this.calc(x) - y;
+        ans += loss*this.w_arr[j]*this.G(x,j)*2*(x-this.c_arr[j])/this.beta_arr[j]/this.beta_arr[j];
+      }
+      return ans;
+    }
+
+    beta_gradient(j){
+      let ans = 0;
+      for(let i=0;i<this.points.length;i++){
+        let x = this.points[i][0];
+        let y = this.points[i][1];
+        let loss = this.calc(x) - y;
+        ans += loss*this.w_arr[j]*this.G(x,j)*(-2)*(x-this.c_arr[j])*(x-this.c_arr[j])/math.pow(this.beta_arr[j],3);
+      }
+      return ans;
+    }
+
+  
+    calcParameters(){
+      for(let i=0;i<this.para_n;i++){
+        let j = Math.random()*this.points.length;
+        j = parseInt(j);
+        this.c_arr[i] = this.points[j][0];
+        this.w_arr[i] = Math.random();
+        this.beta_arr[i] = 300*Math.random();
+      }
+      for(let i=0;i<this.iter_num;i++){
+        for(let j=0;j<this.para_n;j++){
+          this.w_arr[j] -= this.w_gradient(j)*this.learning_rate;
+          this.c_arr[j] -= this.c_gradient(j)*this.learning_rate;
+          this.beta_arr[j] -= this.beta_gradient(j) * this.learning_rate;
+        }
+        // let loss = 0;
+        // for(let i=0;i<this.points.length;i++){
+        //   let x = this.points[i][0];
+        //   let y = this.points[i][1];
+        //   let gap = this.calc(x) - y;
+        //   loss += gap * gap;
+        // }
+      }
+    }
+
+    calc(x){
+      let ans = 0;
+      for(let i=0;i<this.para_n;i++){
+        ans += this.w_arr[i]*this.G(x,i);
+      }
+      return ans;
+    }
+  }
+
+
   function drawCurve(arr,color){
     ctx.beginPath();
     ctx.strokeStyle  = "rgba("+color+",0,0,1)";
@@ -186,7 +288,7 @@ let Calcs = [[Calc1]];
 
 
 function run(){
-    let index = 1;
+  let index = 0;
     for(let calc_arr of Calcs){
       Calc = calc_arr[0];
       let para1 = null;
