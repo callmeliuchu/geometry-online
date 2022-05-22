@@ -1,38 +1,65 @@
 <html>
-    <canvas id="myCanvas" style="border:1px solid #000000;" width="400" height="400"></canvas>
-    <button onclick="change(1)">多项式</button>
-    <button onclick="change(2)">高斯基函数</button>
-    <button onclick="change(3)">同时</button>
-    <button onclick="change(4)">最小二乘</button>
-    <input id="para1" value="3">n</input>
-    <input id="para2" value="0">lambda</input>
-    <button onclick="change(5)">rbf</button>
+    <div style="display:inline-block">
+       <canvas id="myCanvas" style="border:1px solid #000000;" width="400" height="400"></canvas>
+    </div>
+    <div style="display:inline-block">
+        <div>
+            <button onclick="change(1)">多项式</button>
+            <button onclick="change(2)">高斯基函数</button>
+            <!-- <button onclick="change(3)">同时</button> -->
+        </div>
+        <div>
+            <button onclick="change(4)">最小二乘</button>
+            n:<input id="para1" value="3"></input>
+            lambda:<input id="para2" value="1"></input>
+        </div>
+        <div>
+            <button onclick="change(5)">rbf</button>
+        </div>
+        <div>
+            <button onclick="change(6)">参数拟合</button>
+        </div>
+        <div>
+            <button onclick="change(7)">三次样条</button>
+        </div>
+   </div>
     <script src="math.js"></script>
     <script src="index.js"></script>
     <script>
         function change(val){
-            if(val == 1){
+            if(val <= 6){
+                if(val <= 5){
+                    simuFunc = funcSimulate;
+                }
+                if(val == 6){
+                    simuFunc = funcParamSimulate;
+                }
+                if(val == 1){
                 Calcs = [[Calc1]];
-            }
-            if(val == 2){
-                Calcs = [[Calc2]];
-            }
-            if(val == 3){
-                let val1 = document.getElementById('para1').value;
-                val1 = parseInt(val1);
-                let val2 = document.getElementById('para2').value;
-                val2 = parseFloat(val2);
-                Calcs = [[Calc1],[Calc2],[Calc3,val1,val2],[Calc4]];
-            }
-            if(val == 4){
-                let val1 = document.getElementById('para1').value;
-                val1 = parseInt(val1);
-                let val2 = document.getElementById('para2').value;
-                val2 = parseFloat(val2);
-                Calcs = [[Calc3,val1,val2]];
-            }
-            if(val == 5){
-                Calcs = [[Calc4]]; 
+                }
+                if(val == 2){
+                    Calcs = [[Calc2]];
+                }
+                if(val == 3){
+                    let val1 = document.getElementById('para1').value;
+                    val1 = parseInt(val1);
+                    let val2 = document.getElementById('para2').value;
+                    val2 = parseFloat(val2);
+                    Calcs = [[Calc1],[Calc2],[Calc3,val1,val2],[Calc4]];
+                }
+                if(val == 4){
+                    let val1 = document.getElementById('para1').value;
+                    val1 = parseInt(val1);
+                    let val2 = document.getElementById('para2').value;
+                    val2 = parseFloat(val2);
+                    Calcs = [[Calc3,val1,val2]];
+                }
+                if(val == 5){
+                    Calcs = [[Calc4]]; 
+                }
+
+            }else if(val == 7){
+                simuFunc = cubicSimulate;
             }
         }
     </script>

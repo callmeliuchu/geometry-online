@@ -131,7 +131,7 @@ const utils = {
 
   class Calc3{
     // 最小二乘
-    constructor(points,n,lambda){
+    constructor(points,n=5,lambda=0){
       this.points = points;
       this.parameters = [];
       this.n = n;
@@ -183,7 +183,7 @@ data = {
     constructor(points){
       this.points = points;
       let key = this.points.toString();
-      this.para_n = 4;
+      this.para_n = 10;
       this.iter_num = 1000;
       this.learning_rate = 0.001;
       if(key in data){
@@ -244,7 +244,7 @@ data = {
         j = parseInt(j);
         this.c_arr[i] = this.points[j][0];
         this.w_arr[i] = Math.random();
-        this.beta_arr[i] = 300*Math.random();
+        this.beta_arr[i] = Math.random();
       }
       for(let i=0;i<this.iter_num;i++){
         for(let j=0;j<this.para_n;j++){
@@ -273,6 +273,9 @@ data = {
 
 
   function drawCurve(arr,color){
+    if(arr.length == 0){
+      return;
+    }
     ctx.beginPath();
     ctx.strokeStyle  = "rgba("+color+",0,0,1)";
     ctx.moveTo(arr[0][0],arr[0][1]);
@@ -284,11 +287,125 @@ data = {
 }
 
 
+class ParamCalc{
+  constructor(points,Calc){
+    this.points = points;
+    let x = [];
+    let y = [];
+    x.push([0,this.points[0][0]]);
+    y.push([0,this.points[0][1]]);
+    if(this.points.length > 1){
+      let gap = 1 / (this.points.length-1);
+      let bg = 0;
+      for(let i=1;i<this.points.length;i++){
+        bg += gap;
+        x.push([bg,points[i][0]]);
+        y.push([bg,points[i][1]]);
+      }
+    }
+
+    this.xCalc=new Calc(x);
+    this.yCalc=new Calc(y);
+  }
+  calc(t){
+    return [this.xCalc.calc(t),this.yCalc.calc(t)]
+  }
+}
+
+
+class CubicSplineCalc{
+  constructor(points){
+    this.points = points;
+    if(this.points.length >= 3){
+      this.h = [];
+      this.M = [];
+      this.A();
+    }
+  }
+
+  A(){
+    let n = this.points.length - 1;
+    let An = n - 1;
+    let mat = [];
+    let B = [];
+    this.h.push(this.points[1][0]-this.points[0][0]);
+    for(let i=1;i<=n-1;i++){
+      let xisub1 = this.points[i-1][0];
+      let xiplus1 = this.points[i+1][0];
+      let xi = this.points[i][0];
+      let hi = xiplus1 - xi;
+      this.h.push(hi);
+      let hisub1 = xi - xisub1;
+      let yisub1 = this.points[i-1][1];
+      let yiadd1 = this.points[i+1][1];
+      let yi = this.points[i][1];
+      let ui = 2 * (hi + hisub1);
+      let bi = 6*(yiadd1 - yi) / hi;
+      let bisub1 = 6*(yi-yisub1) / hisub1; 
+      let vi = bi - bisub1;
+      B.push(vi);
+      if(n <= 3){
+        if(n == 2){
+          mat.push([ui]);
+        }else if(n == 3){
+          if(i == 1){
+            mat.push([ui,0]);
+          }else{
+            mat.push([0,ui]);
+          }
+        }
+        continue;
+      }
+      if(i == 1){
+        let tmp = [ui,hi];
+        for(let j=0;j<An-2;j++){
+          tmp.push(0);
+        }
+        mat.push(tmp);
+      }else if(i == n-1){
+        let tmp = []
+        for(let j=0;j<An-2;j++){
+          tmp.push(0);
+        }
+        tmp.push(hisub1);
+        tmp.push(ui);
+        mat.push(tmp);
+      }else{
+        let tmp = [];
+        for(let j=0;j<i-2;j++){
+          tmp.push(0);
+        }
+        tmp.push(hisub1);
+        tmp.push(ui);
+        tmp.push(hi);
+        for(let j=0;j<An-i-1;j++){
+          tmp.push(0);
+        }
+        mat.push(tmp);
+      }
+    }
+    let M = math.multiply(math.inv(mat),B);
+    M.unshift(0);
+    M.push(0);
+    this.M = M; 
+  }
+
+  calci(i,x){
+    let v1 = (this.points[i+1][0]-x);
+    let v2 = (x - this.points[i][0]);
+    return this.M[i]*v1*v1*v1/6/this.h[i] + this.M[i+1]*v2*v2*v2/6/this.h[i] + (this.points[i+1][1]/this.h[i] - this.M[i+1]*this.h[i]/6)*v2 + 
+    (this.points[i][1]/this.h[i] - this.M[i]*this.h[i]/6) * v1;
+  }
+}
+
+
+
+
+
 let Calcs = [[Calc1]];
 
 
-function run(){
-  let index = 0;
+function funcSimulate(){
     for(let calc_arr of Calcs){
       Calc = calc_arr[0];
       let para1 = null;
@@ -313,8 +430,59 @@ function run(){
           arr.push([x,y]);
       }
       drawCurve(arr,parseInt(math.random()*255));
-      index += 1;
     }
+}
+
+
+function funcParamSimulate(){
+    let values = []
+    for(let i=0;i<rects.length;i++){
+        values.push([rects[i]['x'],rects[i]['y']]);
+    }
+    if(values.length == 0){
+      return;
+    }
+    let paraCalc = new ParamCalc(values,Calcs[0][0]);
+    let arr = [];
+    let gap = 1/100;
+    bg = 0;
+    for(let i=0;i<100;i++){
+        arr.push(paraCalc.calc(bg));
+        bg += gap;
+    }
+    drawCurve(arr,parseInt(math.random()*255));
+}
+
+
+function cubicSimulate(){
+  let points = []
+  for(let i=0;i<rects.length;i++){
+      points.push([rects[i]['x'],rects[i]['y']]);
+  }
+  if(points.length < 3){
+    return;
+  }
+  let calc = new CubicSplineCalc(points);
+  let arr = [];
+  for(let i=0;i<points.length-1;i++){
+      let x = points[i][0];
+      let gap = points[i+1][0] - x;
+      for(let k=0;k<100;k++){
+        let xx = x+gap/100*k;
+        arr.push([xx,calc.calci(i,xx)]);
+      }
+
+  }
+  drawCurve(arr,parseInt(math.random()*255));
+}
+
+simuFunc = funcParamSimulate;
+
+function run(){
+  simuFunc();
+  // funcParamSimulate();
+  // funcSimulate();
+  // cubicSimulate();
 }
 
   
